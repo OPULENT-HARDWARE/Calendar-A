@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Calendar Ring — Black Background</title>
+<title>Calendar Ring — Pure Black</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600&display=swap');
+
   :root{
     --bg: #000000;
-    --ring-base: #161616;
-    --ring-tick: #2a2a2a;
-    --ring-tick-strong: #5c5c5c;
-    --progress: rgba(255,255,255,0.88);
-    --today: #f1f1f1;
-    --day-progress: rgba(255,255,255,0.88);
-    --text: #e8eef5;
-    --muted: #8e8e8e;
-    --shadow: rgba(0,0,0,0.55);
+    --ring-base: #161616;          /* base ring color */
+    --ring-tick: #2a2a2a;          /* minor ticks */
+    --ring-tick-strong: #5c5c5c;   /* stronger ticks at month starts */
+    --progress: rgba(255,255,255,0.88);  /* year progress (subtle white glow) */
+    --today: #f1f1f1;              /* today marker */
+    --day-progress: rgba(255,255,255,0.88); /* within-today progress (subtle white glow) */
+    --text: #e8eef5;               /* primary text */
+    --muted: #8e8e8e;              /* secondary text (monochrome gray) */
   }
 
   html, body{
-    margin:0; padding:0;
-    background:var(--bg); color:var(--text);
-    font-family:'Saira', Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family: 'Saira', Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+    overflow:hidden; /* prevent any stray scrollbars from glow/ticks */
   }
 
   .wrap{
@@ -32,33 +32,13 @@
     padding:clamp(12px, 2vw, 28px);
   }
 
-  /* -------------------------------
-     Original glassy card (commented)
   .card{
     width:100%;
     max-width:1200px;
     aspect-ratio:1/1;
     position:relative;
     border-radius:24px;
-    background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
-    background-blend-mode: screen;
-    box-shadow: 0 8px 40px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.35);
-    border:1px solid rgba(255,255,255,0.18);
-    overflow:hidden;
-    isolation:isolate;
-    backdrop-filter: blur(10px) saturate(120%);
-    -webkit-backdrop-filter: blur(10px) saturate(120%);
-  }
-  ------------------------------- */
-
-  /* Replacement: pure black solid background */
-  .card{
-    width:100%;
-    max-width:1200px;
-    aspect-ratio:1/1;
-    position:relative;
-    border-radius:24px;
-    background:#000;
+    background:#000;            /* pure black background */
     border:none;
     box-shadow:none;
     overflow:hidden;
@@ -69,61 +49,215 @@
   .center-text{
     position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:16px;
   }
-  .date-big{ font-size:clamp(14px,2.5vw,28px); letter-spacing:0.5px; }
-  .date-sub{ font-size:clamp(10px,1.4vw,14px); color:var(--muted); margin-top:4px; }
+  .date-big{ font-size: clamp(18px, 3vw, 30px); letter-spacing: 0.5px; }
+  .date-sub{ font-size: clamp(12px, 2.2vw, 18px); color: var(--muted); margin-top:4px; }
 
   .legend{
     position:absolute; left:18px; bottom:16px; font-size:12px; color:var(--muted); opacity:.9;
   }
 
+  /* High contrast mode toggle (press "h") */
   .high-contrast{
-    --ring-base:#10151a;
-    --ring-tick:#6b7f99;
-    --ring-tick-strong:#ffffff;
-    --progress:#00ff8a;
-    --today:#4da3ff;
-    --day-progress:#ffea00;
+    --ring-base: #10151a;
+    --ring-tick: #6b7f99;
+    --ring-tick-strong: #ffffff;
+    --progress: #00ff8a;
+    --today: #4da3ff;
+    --day-progress: #ffea00;
   }
 
   @media (prefers-reduced-motion: reduce){
-    .animate{ transition:none!important; animation:none!important; }
+    .animate { transition: none !important; animation: none !important; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card" id="card" role="img" aria-label="Calendar ring showing today's position in the year and progress of the current day">
-    <svg viewBox="-100 -100 200 200" aria-hidden="true">
-      <defs>
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.8" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
+  <div class="wrap">
+    <div class="card" id="card" role="img" aria-label="Calendar ring showing today's position in the year and progress of the current day">
+      <svg viewBox="-100 -100 200 200" aria-hidden="true">
+        <defs>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.8" result="b"/>
+            <feMerge>
+              <feMergeNode in="b"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
 
-      <circle cx="0" cy="0" r="74" fill="none" stroke="var(--ring-base)" stroke-width="12"/>
-      <g id="ticks"></g>
-      <path id="yearProgress" fill="none" stroke="var(--progress)" stroke-linecap="round" stroke-width="6" filter="url(#glow)"/>
-      <circle id="todayDot" r="2.8" fill="var(--today)" filter="url(#glow)"/>
-      <path id="dayProgress" fill="none" stroke="var(--day-progress)" stroke-linecap="round" stroke-width="3.5" filter="url(#glow)"/>
-      <circle cx="0" cy="0" r="52" fill="none" stroke="var(--ring-base)" stroke-width="2"/>
-    </svg>
+        <!-- Outer base circle -->
+        <circle cx="0" cy="0" r="74" fill="none" stroke="var(--ring-base)" stroke-width="12" />
 
-    <div class="center-text" aria-live="polite">
-      <div>
-        <div class="date-big" id="dateBig">—</div>
-        <div class="date-sub" id="dateSub">—</div>
+        <!-- Year ticks (minor + stronger month-start ticks) -->
+        <g id="ticks"></g>
+
+        <!-- Year progress arc -->
+        <path id="yearProgress" fill="none" stroke="var(--progress)" stroke-linecap="round" stroke-width="6" filter="url(#glow)" />
+
+        <!-- Today marker dot -->
+        <circle id="todayDot" r="2.8" fill="var(--today)" filter="url(#glow)" />
+
+        <!-- Within-today progress (inner thin arc: midnight→midnight) -->
+        <path id="dayProgress" fill="none" stroke="var(--day-progress)" stroke-linecap="round" stroke-width="3.5" filter="url(#glow)" />
+
+        <!-- Inner ring (visual guide) -->
+        <circle cx="0" cy="0" r="52" fill="none" stroke="var(--ring-base)" stroke-width="2" />
+      </svg>
+
+      <div class="center-text" aria-live="polite">
+        <div>
+          <div class="date-big" id="dateBig">—</div>
+          <div class="date-sub" id="dateSub">—</div>
+        </div>
       </div>
+
+      <div class="legend">• Year progress • Day progress — press <kbd>H</kbd> for high-contrast</div>
     </div>
-    <div class="legend">• Year progress • Day progress — press <kbd>H</kbd> for high-contrast</div>
   </div>
-</div>
 
 <script>
 (function(){
-  const card=document.getElementById('card');
-  const ticksG=document.getElementById('ticks');
-  const yearProgress=document.getElementById('yearProgress');
-  const dayProgress=document.getElementById('dayProgress');
-  const todayDot=document.getElementById('todayDot');
-  const dateBig=document.getE
+  const card = document.getElementById('card');
+  const ticksG = document.getElementById('ticks');
+  const yearProgress = document.getElementById('yearProgress');
+  const dayProgress = document.getElementById('dayProgress');
+  const todayDot = document.getElementById('todayDot');
+  const dateBig = document.getElementById('dateBig');
+  const dateSub = document.getElementById('dateSub');
+
+  const R_TICK_INNER = 66.5;   // minor tick inner radius
+  const R_TICK_OUTER = 74;     // minor tick outer radius
+  const R_TICK_MONTH = 62;     // month tick inner radius (longer)
+
+  function isLeap(y){ return (y%4===0 && y%100!==0) || (y%400===0); }
+  function daysInYear(y){ return isLeap(y) ? 366 : 365; }
+  function doy(date){
+    const start = new Date(date.getFullYear(),0,1);
+    const diff = date - start; // ms
+    return Math.floor(diff/86400000) + 1; // 1-based DOY
+  }
+  function fractionOfDay(date){
+    return (date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds() + date.getMilliseconds()/1000) / 86400;
+  }
+  function polarToCartesian(cx, cy, r, angleDeg){
+    const a = (angleDeg-90) * Math.PI/180; // 0° at 12 o'clock
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  }
+  function describeArc(r, startAngle, endAngle){
+    const delta = (endAngle - startAngle);
+    const largeArc = (delta % 360 + 360) % 360 > 180 ? 1 : 0;
+    const start = polarToCartesian(0,0,r,endAngle);
+    const end   = polarToCartesian(0,0,r,startAngle);
+    return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${r} ${r} 0 ${largeArc} 0 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
+  }
+
+  // Build tick marks once (stronger ticks at month starts)
+  function monthStartDOYs(year){
+    const arr = [1];
+    for(let m=1;m<12;m++){
+      const d = new Date(year,m,1);
+      arr.push(doy(d));
+    }
+    return arr; // 12 entries, 1-based DOY of each month start
+  }
+
+  function buildTicks(year){
+    const total = daysInYear(year);
+    const monthStarts = new Set(monthStartDOYs(year));
+    const slice = 360/total;
+    const gFrag = document.createDocumentFragment();
+    for(let d=1; d<=total; d++){
+      const angle = d*slice; // degrees
+      const isMonthTick = monthStarts.has(d);
+      const inner = isMonthTick ? R_TICK_MONTH : R_TICK_INNER;
+      const outer = R_TICK_OUTER;
+      const p1 = polarToCartesian(0,0, inner, angle);
+      const p2 = polarToCartesian(0,0, outer, angle);
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', p1.x);
+      line.setAttribute('y1', p1.y);
+      line.setAttribute('x2', p2.x);
+      line.setAttribute('y2', p2.y);
+      line.setAttribute('stroke', isMonthTick ? 'var(--ring-tick-strong)' : 'var(--ring-tick)');
+      line.setAttribute('stroke-width', isMonthTick ? '1.2' : '0.8');
+      gFrag.appendChild(line);
+    }
+    ticksG.innerHTML = '';
+    ticksG.appendChild(gFrag);
+  }
+
+  function update(){
+    const now = new Date();
+    const y = now.getFullYear();
+    const total = daysInYear(y);
+    const dayOfYear = doy(now);                   // 1..365/366
+    const slice = 360/total;                      // degrees per day
+    const yearFracByDOY = (dayOfYear-1)/total;    // 0..almost 1, start of today
+    const withinDay = fractionOfDay(now);         // 0..1
+
+    // Year progress arc up to "now" (includes within-day fraction), start at 12 o'clock
+    const yearProgressDeg = (yearFracByDOY + withinDay/total) * 360;
+    yearProgress.setAttribute('d', describeArc(69, 0.01, Math.max(0.01, yearProgressDeg)));
+
+    // Today marker at center of today's slice
+    const todayAngle = (dayOfYear-0.5)*slice;
+    const pos = polarToCartesian(0,0,69, todayAngle);
+    todayDot.setAttribute('cx', pos.x.toFixed(3));
+    todayDot.setAttribute('cy', pos.y.toFixed(3));
+
+    // Day progress around the inner ring (midnight → midnight), starting at 12 o'clock
+    const dayDeg = withinDay * 360;
+    dayProgress.setAttribute('d', describeArc(52, 0.01, Math.max(0.02, dayDeg)));
+
+    // Center text
+    const wd = now.toLocaleDateString(undefined, { weekday:'long' });
+    const mo = now.toLocaleDateString(undefined, { month:'long' });
+    const dd = now.toLocaleDateString(undefined, { day:'numeric' });
+    const yyyy = y;
+
+    // Percentage of year complete (including intra-day)
+    const yearPct = ((dayOfYear-1 + withinDay)/total)*100;
+    dateBig.textContent = `${wd}, ${mo} ${dd}, ${yyyy}`;
+    dateSub.textContent = `${dayOfYear}/${total} • ${yearPct.toFixed(1)}% of year • ${Math.round(withinDay*100)}% of today`;
+
+    // ARIA label
+    card.setAttribute('aria-label', `Today is ${wd}, ${mo} ${dd}, ${yyyy}. Day ${dayOfYear} of ${total}. ${yearPct.toFixed(1)} percent of the year complete.`);
+
+    requestAnimationFrame(update);
+  }
+
+  // Init
+  (function init(){
+    const now = new Date();
+    buildTicks(now.getFullYear());
+
+    // Self-tests (console)
+    try{
+      console.assert(daysInYear(2024) === 366, '2024 leap year');
+      console.assert(daysInYear(2025) === 365, '2025 common year');
+      console.assert(describeArc(10,0,90).startsWith('M '), 'describeArc syntax');
+    }catch(e){ console.warn('Self-tests failed:', e); }
+
+    // Rebuild ticks if the year changes (e.g., New Year)
+    let lastYear = now.getFullYear();
+    setInterval(()=>{
+      const y = (new Date()).getFullYear();
+      if(y !== lastYear){
+        buildTicks(y);
+        lastYear = y;
+      }
+    }, 60000);
+
+    // High-contrast toggle
+    document.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase()==='h'){
+        document.body.classList.toggle('high-contrast');
+      }
+    });
+
+    update();
+  })();
+})();
+</script>
+</body>
+</html>
